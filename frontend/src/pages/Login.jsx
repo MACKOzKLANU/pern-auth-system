@@ -23,9 +23,9 @@ function Login({ setUser }) {
     }
 
     return (
-        <div className="min-h-[80vh] flex items-center justify-center">
-            <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md">
-                <h2 className="text-xl mb-4">Login</h2>
+        <div className="min-h-[80vh] flex items-center justify-center p-4">
+            <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md w-full max-w-lg">
+                <h2 className="text-2xl mb-6 font-bold text-center text-gray-800">Login</h2>
                 {error && <p className="text-red-500 mb-4">{error}</p>}
                 <input type="email" placeholder="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="border p-2 w-full mb-3" />
                 <input type="password" placeholder="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="border p-2 w-full mb-3" />
