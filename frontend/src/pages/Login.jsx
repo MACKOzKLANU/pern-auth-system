@@ -10,17 +10,17 @@ function Login({ setUser }) {
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
-const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-        const res = await axios.post("http://localhost:3000/api/auth/login", form);
-        setUser(res.data.user);
-        navigate("/");
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await axios.post("/api/auth/login", form);
+            setUser(res.data.user);
+            navigate("/");
 
-    } catch (err) {
-        setError("Invalid email or password");
+        } catch (err) {
+            setError("Invalid email or password");
+        }
     }
-}
 
     return (
         <div className="min-h-[80vh] flex items-center justify-center">

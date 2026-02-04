@@ -1,11 +1,12 @@
 import { useState } from "react"
-import { BrowserRouter, Route, Router, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Router, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import { useEffect } from "react";
 import axios from "axios";
+import NotFound from "./components/NotFound";
 
 axios.defaults.withCredentials = true;
 
@@ -17,7 +18,7 @@ function App() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await axios.get("http://localhost:3000/api/auth/me");
+        const res = await axios.get("/api/auth/me");
         setUser(res.data);
       } catch(err) {
         setUser(null);
@@ -37,8 +38,9 @@ function App() {
       <Navbar user={user} setUser={setUser}></Navbar>
       <Routes>
         <Route path={"/"} element={<Home user={user} error={error}></Home>}></Route>
-        <Route path={"/login"} element={<Login setUser={setUser}></Login>}></Route>
-        <Route path={"/register"} element={<Register setUser={setUser}></Register>}></Route>
+        <Route path={"/login"} element={user ? <Navigate to={"/"}></Navigate> : <Login setUser={setUser}></Login>}></Route>
+        <Route path={"/register"} element={user ? <Navigate to={"/"}></Navigate> : <Register setUser={setUser}></Register>}></Route>
+        <Route path="*" element={<NotFound></NotFound>}></Route>
       </Routes>
     </BrowserRouter>
   )
