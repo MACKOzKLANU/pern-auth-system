@@ -13,7 +13,7 @@ const cookieOptions = {
 }
 
 const generateToken = (id) => {
-    return jwt.sign({id}, process.env.JWT_SECRET, {
+    return jwt.sign({ id }, process.env.JWT_SECRET, {
         expiresIn: '30d'
     });
 }
@@ -23,11 +23,11 @@ const generateToken = (id) => {
 router.post('/register', async (req, res) => {
     const { name, email, password } = req.body;
 
-    if(!name || !email || !password) {
+    if (!name || !email || !password) {
         return res.status(400).json({ message: "Please provide all required fields" });
     }
 
-    const userExists = await pool.query('SELECT * FROM users WHERE email = $1', 
+    const userExists = await pool.query('SELECT * FROM users WHERE email = $1',
         [email]
     );
 
@@ -46,23 +46,23 @@ router.post('/register', async (req, res) => {
 
     res.cookie('token', token, cookieOptions);
 
-    return res.status(201).json({ user: newUser.rows[0]});
+    return res.status(201).json({ user: newUser.rows[0] });
 })
 
 // Login
 
 router.post('/login', async (req, res) => {
-    const {email, password} = req.body;
+    const { email, password } = req.body;
     if (!email || !password) {
         return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
-    const user = await pool.query('SELECT * FROM users WHERE email = $1', 
+    const user = await pool.query('SELECT * FROM users WHERE email = $1',
         [email]
     );
 
     if (user.rows.length === 0) {
-        return res.status(400).json( {message: 'Invalid credentials' });
+        return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     const userData = user.rows[0];
@@ -73,11 +73,17 @@ router.post('/login', async (req, res) => {
         return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const token  = generateToken(userData.id);
+    const token = generateToken(userData.id);
 
     res.cookie('token', token, cookieOptions);
 
-    res.json({ user: { id: userData.id, name: userData.name, email: userData.email } });
+    res.json({
+        user: {
+            id: userData.id,
+            name: userData.name,
+            email: userData.email
+        }
+    });
 })
 
 // Me
@@ -89,8 +95,8 @@ router.get('/me', protect, async (req, res) => {
 // Logout
 
 router.post('/logout', (req, res) => {
-    res.cookie('token', '', { ...cookieOptions, maxAge: 1});
-    res.json({ message: 'Logged out successfully'});
+    res.cookie('token', '', { ...cookieOptions, maxAge: 1 });
+    res.json({ message: 'Logged out successfully' });
 })
 
 export default router;

@@ -11,6 +11,7 @@ axios.defaults.withCredentials = true;
 
 function App() {
   const [user, setUser] = useState(null);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -23,8 +24,8 @@ function App() {
       } finally {
         setLoading(false);
       }
-
-    }
+    };
+    fetchUser();
   }, []);
 
   if(loading) {
@@ -33,9 +34,9 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Navbar></Navbar>
+      <Navbar user={user} setUser={setUser}></Navbar>
       <Routes>
-        <Route path={"/"} element={<Home></Home>}></Route>
+        <Route path={"/"} element={<Home user={user} error={error}></Home>}></Route>
         <Route path={"/login"} element={<Login setUser={setUser}></Login>}></Route>
         <Route path={"/register"} element={<Register setUser={setUser}></Register>}></Route>
       </Routes>
