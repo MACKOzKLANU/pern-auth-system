@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
 import { protect } from '../middleware/auth.js';
 import transporter from '../config/nodemailer.js';
+import { sendWelcomeEmail } from '../services/mailService.js';
 
 const router = express.Router();
 const cookieOptions = {
@@ -48,15 +49,7 @@ router.post('/register', async (req, res) => {
     res.cookie('token', token, cookieOptions);
 
     // Sending welcome email
-    const mailOptions = {
-        from: process.env.SENDER_EMAIL,
-        to: email,
-        subject: "Welcome!",
-        text: `Welcome, ${name}! Your account has been created.`
-
-    }
-
-    await transporter.sendMail(mailOptions);
+    sendWelcomeEmail(email, name);
 
     return res.status(201).json({ user: newUser.rows[0] });
 })
@@ -110,5 +103,9 @@ router.post('/logout', (req, res) => {
     res.cookie('token', '', { ...cookieOptions, maxAge: 1 });
     res.json({ message: 'Logged out successfully' });
 })
+
+export const handleSendVerifyOtp = async (req, res) => {
+
+}
 
 export default router;
