@@ -135,7 +135,8 @@ If you add email verification and password reset features, add these columns:
 ```sql
 ALTER TABLE users
   ADD COLUMN is_verified BOOLEAN DEFAULT FALSE,
-  ADD COLUMN verification_code VARCHAR(20),
+  ADD COLUMN verified_at TIMESTAMP,
+  ADD COLUMN verification_code VARCHAR(128),
   ADD COLUMN verification_expires TIMESTAMP,
   ADD COLUMN reset_token VARCHAR(128),
   ADD COLUMN reset_expires TIMESTAMP;
