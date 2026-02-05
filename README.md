@@ -4,25 +4,25 @@ A professional, industry-standard authentication system built with the **PERN st
 
 ## 🛠 Tech Stack
 
-* **Frontend:** React (Vite), Tailwind CSS
-* **Backend:** Node.js, Express.js
-* **Database:** PostgreSQL
-* **Auth / Security:** jsonwebtoken, bcryptjs, cookie-parser
+* **Frontend:** React (Vite), Tailwind CSS  
+* **Backend:** Node.js, Express.js  
+* **Database:** PostgreSQL  
+* **Auth / Security:** jsonwebtoken, bcryptjs, cookie-parser  
 * **Tools:** Nodemon, dotenv
 
 ## ✨ Key Features
 
-- **Register:** Create a new user account and receive a JWT set in an HTTP-only cookie.
-- **Login:** Authenticate with email + password; receive JWT cookie and user info.
-- **Logout:** Clear authentication cookie.
-- **Protected routes:** Example `/me` route that returns the current user when authenticated.
-- **Secure cookies:** Cookie options configured for httpOnly, sameSite, maxAge and secure in production.
+- **Register:** Create a new user account and receive a JWT set in an HTTP-only cookie.  
+- **Login:** Authenticate with email + password; receive JWT cookie and user info.  
+- **Logout:** Clear authentication cookie.  
+- **Protected routes:** Example `/me` route that returns the current user when authenticated.  
+- **Secure cookies:** Cookie options configured for httpOnly, sameSite, maxAge and secure in production.  
 - **Password hashing:** Passwords are hashed with bcrypt before storage.
 
 ## 📂 Project Structure
 
-- `/frontend` — React application (Vite + Tailwind)
-- `/backend` — Express API, database connection and auth routes
+- `/frontend` — React application (Vite + Tailwind)  
+- `/backend` — Express API, database connection and auth routes  
 - `.env` files live in the backend (see Environment Variables section)
 
 ---
@@ -78,23 +78,37 @@ cd pern-auth-system
 
 ## ⚙️ Environment variables
 
-Create a `.env` file inside `backend/` with:
+Create a `.env` file inside the `backend/` folder. Do NOT commit this file to source control.
 
-```
+Below is an example `.env` file you can copy into `backend/.env` and then update with your real values:
+
+```env
+# Server
+PORT=3000
+
+# Database (Postgres)
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=your_database_name
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
+DB_NAME=pern_auth
+DB_USER=postgres
+DB_PASSWORD=prog2137
 
-JWT_SECRET=some_long_secret_value
-NODE_ENV=development
-PORT=5000
+# Auth
+JWT_SECRET=123456
+
+# Frontend (for CORS / reset links)
 CLIENT_URL=http://localhost:5173
+
+# SMTP (for sending verification and reset emails)
+SMTP_USER=             # e.g. your SMTP username or email (leave blank here)
+SMTP_PASS=             # e.g. your SMTP password (leave blank here)
+SENDER_EMAIL=          # e.g. "No Reply <no-reply@yourdomain.com>"
 ```
 
-- `CLIENT_URL` is used for CORS while developing.
-- `JWT_SECRET` must be kept secret in production.
+Important:
+- Replace placeholder values (like `prog2137`, `123456`, blank SMTP fields) with secure, real values for development or production.
+- Keep `.env` out of version control. Add `backend/.env` to `.gitignore` if it is not already ignored.
+- For production, use a secure `JWT_SECRET` and secure SMTP credentials. Serve over HTTPS and set `secure: true` for cookies in production.
 
 ---
 
@@ -114,6 +128,17 @@ CREATE TABLE users (
   password VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT NOW()
 );
+```
+
+If you add email verification and password reset features, add these columns:
+
+```sql
+ALTER TABLE users
+  ADD COLUMN is_verified BOOLEAN DEFAULT FALSE,
+  ADD COLUMN verification_code VARCHAR(20),
+  ADD COLUMN verification_expires TIMESTAMP,
+  ADD COLUMN reset_token VARCHAR(128),
+  ADD COLUMN reset_expires TIMESTAMP;
 ```
 
 ---
@@ -209,6 +234,7 @@ const hashedPassword = await bcrypt.hash(password, 10);
 - Consider short-lived access tokens + refresh tokens for stricter security.
 - Add input validation and rate limiting to reduce abuse.
 - Store only required fields in the JWT; avoid placing sensitive data in tokens.
+- For reset tokens, consider storing a hashed token in the DB (sha256) instead of plaintext for better security.
 
 ---
 
@@ -217,6 +243,7 @@ const hashedPassword = await bcrypt.hash(password, 10);
 - "Cannot connect to database": verify `.env` values and that PostgreSQL is running.
 - "Cookie not set / not sent": ensure `axios`/`fetch` uses credentials and backend `cors` allows credentials and correct origin.
 - JWT errors: ensure `JWT_SECRET` is consistent between runs.
+- Email sending fails: check SMTP credentials (`SMTP_USER`, `SMTP_PASS`) and SMTP host/port (if using a provider you may need to allow less secure apps or create an app password).
 
 ---
 
