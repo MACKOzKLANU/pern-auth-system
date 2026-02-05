@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
 import { protect } from '../middleware/auth.js';
+import transporter from '../config/nodemailer.js';
 
 const router = express.Router();
 const cookieOptions = {
@@ -45,6 +46,17 @@ router.post('/register', async (req, res) => {
     const token = generateToken(newUser.rows[0].id);
 
     res.cookie('token', token, cookieOptions);
+
+    // Sending welcome email
+    const mailOptions = {
+        from: process.env.SENDER_EMAIL,
+        to: email,
+        subject: "Welcome!",
+        text: `Welcome, ${name}! Your account has been created.`
+
+    }
+
+    await transporter.sendMail(mailOptions);
 
     return res.status(201).json({ user: newUser.rows[0] });
 })
