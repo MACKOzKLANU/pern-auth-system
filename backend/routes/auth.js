@@ -4,7 +4,8 @@ import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
 import { protect } from '../middleware/auth.js';
 import transporter from '../config/nodemailer.js';
-import { sendWelcomeEmail } from '../services/mailService.js';
+import { sendVerificationOtp, sendWelcomeEmail } from '../services/mailService.js';
+import { generateOTP, isTokenExpired, tokenExpiry } from '../utils/tokens.js';
 
 const router = express.Router();
 const cookieOptions = {
@@ -36,12 +37,17 @@ router.post('/register', async (req, res) => {
     if (userExists.rows.length > 0) {
         return res.status(400).json({ message: "User already exists" });
     }
+    
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = (await bcrypt.hash(password, 10));
+    const otpPlain = generateOTP();
 
+    const otpHash = await bcrypt.hash(otpPlain, 10)
+
+    const otpExpires = tokenExpiry(0.5);
     const newUser = await pool.query(
-        'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email',
-        [name, email, hashedPassword]
+        'INSERT INTO users (name, email, password, verification_code, verification_expires) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, is_verified',
+        [name, email, hashedPassword, otpHash, otpExpires]
     );
 
     const token = generateToken(newUser.rows[0].id);
@@ -49,9 +55,51 @@ router.post('/register', async (req, res) => {
     res.cookie('token', token, cookieOptions);
 
     // Sending welcome email
-    sendWelcomeEmail(email, name);
+    //  sendWelcomeEmail(email, name);
+
+    // Sending verification OTP
+    sendVerificationOtp(email, name, otpPlain)
 
     return res.status(201).json({ user: newUser.rows[0] });
+})
+
+router.post('/verify', async (req, res) => {
+
+    const { email, submittedCode } = req.body;
+    if (!submittedCode) {
+        return res.status(400).json({ message: 'Please provide verification code' });
+    }
+
+    const user = await pool.query('SELECT is_verified, verification_code, verification_expires FROM users WHERE email = $1',
+        [email]
+    );
+
+    const userData = user.rows[0] || null;
+
+    if (user.rows.length === 0) {
+        return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    else if (userData.is_verified) {
+        return res.status(200).json({ message: 'Account Already verified'});
+    }
+
+    else if (isTokenExpired(userData.verification_expires)) {
+        return res.status(401).json({ message: 'Token has expired' });
+    }
+
+    const isMatch = await bcrypt.compare(submittedCode, userData.verification_code);
+    if (!isMatch) {
+        return res.status(400).json({ message: 'Invalid code' });
+    }
+
+    await pool.query('UPDATE users SET is_verified=true, verification_code=NULL, verification_expires=NULL WHERE email = $1',
+        [email]
+    );
+    return res.status(200).json({ message: 'Verification successful' });
+
+
+
 })
 
 // Login

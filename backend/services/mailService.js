@@ -21,20 +21,20 @@ export async function sendMail({ to, subject, text, html }) {
 
 export async function sendWelcomeEmail(to, name) {
   const subject = `Welcome! ${name}`;
-  const text = `Welcome, ${name}! Your account has been created.`;
-  const html = `<p>Welcome, <strong>${name}</strong>! Your account has been created.</p>`;
+  const text = `Welcome, ${name}! Your account has been created and verified.`;
+  const html = `<p>Welcome, <strong>${name}</strong>! Your account has been created and verifiec.</p>`;
 
   return sendMail({ to, subject, text, html });
 }
 
 export async function sendVerificationOtp(to, name, code) {
   const subject = `Verify your account.`;
-  const text = `Your verification code is: ${code} (expires in 1 hour).`;
+  const text = `Your verification code is: ${code} (expires in 30 minutes).`;
   const html = `
     <p>Hi ${name || ''},</p>
     <p>Your verification code is:</p>
     <p style="font-size:20px;"><strong>${code}</strong></p>
-    <p>This code will expire in 1 hour. If you did not request this, ignore this email.</p>
+    <p>This code will expire in 30 minutes. If you did not request this, ignore this email.</p>
   `;
   return sendMail({ to, subject, text, html });
 }

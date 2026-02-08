@@ -7,6 +7,7 @@ import Register from "./pages/Register";
 import { useEffect } from "react";
 import axios from "axios";
 import NotFound from "./components/NotFound";
+import Verify from "./pages/Verify";
 
 axios.defaults.withCredentials = true;
 
@@ -20,6 +21,7 @@ function App() {
       try {
         const res = await axios.get("/api/auth/me");
         setUser(res.data);
+        console.log(res.data);
       } catch(err) {
         setUser(null);
       } finally {
@@ -40,6 +42,7 @@ function App() {
         <Route path={"/"} element={<Home user={user} error={error}></Home>}></Route>
         <Route path={"/login"} element={user ? <Navigate to={"/"}></Navigate> : <Login setUser={setUser}></Login>}></Route>
         <Route path={"/register"} element={user ? <Navigate to={"/"}></Navigate> : <Register setUser={setUser}></Register>}></Route>
+        <Route path={"/verify"} element={user ? <Verify user={user} setUser={setUser}></Verify> : <Register setUser={setUser}></Register>}></Route>
         <Route path="*" element={<NotFound></NotFound>}></Route>
       </Routes>
     </BrowserRouter>

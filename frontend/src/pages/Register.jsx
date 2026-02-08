@@ -13,10 +13,11 @@ function Register({ setUser }) {
 
 const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
         const res = await axios.post("/api/auth/register", form);
         setUser(res.data.user);
-        navigate("/");
+        navigate("/verify");
 
     } catch (err) {
         setError("Registration failed");
