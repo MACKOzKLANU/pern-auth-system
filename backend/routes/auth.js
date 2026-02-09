@@ -99,7 +99,37 @@ router.post('/verify', async (req, res) => {
     const updatedUserData = updatedUser.rows[0];
     return res.status(200).json({ message: 'Verification successful', user: updatedUserData });
 
+})
 
+router.post('/resent-otp', async (req, res) => {
+    const { email, name } = req.body;
+    if (!email) {
+        return res.status(400).json({ message: 'Please provide all required fields' });
+
+    }
+
+    const user = await pool.query('SELECT * FROM users WHERE email = $1',
+        [email]
+    );
+
+    if (user.rows.length === 0) {
+        return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    const otpPlain = generateOTP();
+
+    const otpHash = await bcrypt.hash(otpPlain, 10)
+
+    const otpExpires = tokenExpiry(0.5);
+
+    await pool.query('UPDATE public.users SET verification_code=$1, verification_expires=$2', 
+        [otpHash, otpExpires]
+    );
+
+    sendVerificationOtp(email, name, otpPlain)
+
+
+    return res.status(200).json({message: "Verification code resent"});
 
 })
 
@@ -153,9 +183,5 @@ router.post('/logout', (req, res) => {
     res.cookie('token', '', { ...cookieOptions, maxAge: 1 });
     res.json({ message: 'Logged out successfully' });
 })
-
-export const handleSendVerifyOtp = async (req, res) => {
-
-}
 
 export default router;
