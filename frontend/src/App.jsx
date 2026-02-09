@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import axios from "axios";
 import NotFound from "./components/NotFound";
 import Verify from "./pages/Verify";
+import ResetPassword from "./pages/ResetPassword";
 
 axios.defaults.withCredentials = true;
 
@@ -43,6 +44,7 @@ function App() {
         <Route path={"/login"} element={user ? <Navigate to={"/"}></Navigate> : <Login setUser={setUser}></Login>}></Route>
         <Route path={"/register"} element={user ? <Navigate to={"/"}></Navigate> : <Register setUser={setUser}></Register>}></Route>
         <Route path={"/verify"} element={(user && !user.is_verified) ? <Verify user={user} setUser={setUser}></Verify> :   <Navigate to={"/"}></Navigate>}></Route>
+        <Route path={"/reset-password"} element={<ResetPassword></ResetPassword>}></Route>
         <Route path="*" element={<NotFound></NotFound>}></Route>
       </Routes>
     </BrowserRouter>

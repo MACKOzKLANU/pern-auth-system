@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
 import { protect } from '../middleware/auth.js';
 import transporter from '../config/nodemailer.js';
-import { sendVerificationOtp, sendWelcomeEmail } from '../services/mailService.js';
+import { sendResetEmail, sendVerificationOtp, sendWelcomeEmail } from '../services/mailService.js';
 import { generateOTP, isTokenExpired, tokenExpiry } from '../utils/tokens.js';
 
 const router = express.Router();
@@ -105,7 +105,6 @@ router.post('/resent-otp', async (req, res) => {
     const { email, name } = req.body;
     if (!email) {
         return res.status(400).json({ message: 'Please provide all required fields' });
-
     }
 
     const user = await pool.query('SELECT * FROM users WHERE email = $1',
@@ -169,6 +168,39 @@ router.post('/login', async (req, res) => {
             is_verified: userData.is_verified
         }
     });
+})
+
+router.post('/reset/request', async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json({ message: 'Please provide all required fields' });
+    }
+
+    const user = await pool.query('SELECT name FROM users WHERE email = $1',
+        [email]
+    );
+
+    const name = user.rows[0].name;
+
+    if (user.rows.length === 0) {
+        return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    const otpPlain = generateOTP();
+
+    const otpHash = await bcrypt.hash(otpPlain, 10)
+
+    const otpExpires = tokenExpiry(0.5);
+
+    await pool.query('UPDATE users SET reset_token=$1, reset_expires=$2 WHERE email = $3', 
+        [otpHash, otpExpires, email]
+    );
+
+    sendResetEmail(email, name, otpPlain)
+
+    return res.status(200).json({message: "Verification code resent"});
+
 })
 
 // Me

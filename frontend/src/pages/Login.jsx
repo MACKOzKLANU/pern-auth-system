@@ -22,6 +22,10 @@ function Login({ setUser }) {
         }
     }
 
+    const navigateToResetPassword = () => {
+        navigate("/reset-password");
+    }
+
     return (
         <div className="min-h-[80vh] flex items-center justify-center p-4">
             <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md w-full max-w-lg">
@@ -31,6 +35,8 @@ function Login({ setUser }) {
                 <input type="password" placeholder="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="border p-2 w-full mb-3" />
 
                 <button className="bg-blue-500 text-white p-2 w-full">Login</button>
+                <button type="button" onClick={navigateToResetPassword} className={`w-full mt-3 px-4 py-2 font-medium rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 transition-colors duration-200`}> Reset password </button>
+
             </form>
         </div>
     )
