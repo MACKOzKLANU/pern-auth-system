@@ -8,7 +8,11 @@ function Home({ user, error }) {
                 {user ? (
                     <div>
                         <h2 className="text-2xl font-bold mb-4 text-gray-800">Welcome, {user.name}!</h2>
-                        <p className="text-gray-600">Email: {user.email}</p>
+                        <p className="text-gray-600 mb-4">Email: {user.email}</p>
+                        {!user.is_verified && <Link to={"/verify"} className="inline-flex items-center justify-center px-5 py-2.5 
+                        rounded-lg font-semibold text-white 
+                        bg-blue-600 hover:bg-blue-700 active:bg-blue-800
+                        shadow-sm hover:shadow-md transition-all duration-200">Verify your account</Link>}
                     </div>
                 ) : (
                     <div>

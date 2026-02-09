@@ -37,7 +37,6 @@ router.post('/register', async (req, res) => {
     if (userExists.rows.length > 0) {
         return res.status(400).json({ message: "User already exists" });
     }
-    
 
     const hashedPassword = (await bcrypt.hash(password, 10));
     const otpPlain = generateOTP();
@@ -93,10 +92,12 @@ router.post('/verify', async (req, res) => {
         return res.status(400).json({ message: 'Invalid code' });
     }
 
-    await pool.query('UPDATE users SET is_verified=true, verification_code=NULL, verification_expires=NULL WHERE email = $1',
+    const updatedUser = await pool.query('UPDATE users SET is_verified=true, verification_code=NULL, verification_expires=NULL WHERE email = $1 RETURNING id, name, email, is_verified',
         [email]
     );
-    return res.status(200).json({ message: 'Verification successful' });
+    
+    const updatedUserData = updatedUser.rows[0];
+    return res.status(200).json({ message: 'Verification successful', user: updatedUserData });
 
 
 
@@ -134,7 +135,8 @@ router.post('/login', async (req, res) => {
         user: {
             id: userData.id,
             name: userData.name,
-            email: userData.email
+            email: userData.email,
+            is_verified: userData.is_verified
         }
     });
 })

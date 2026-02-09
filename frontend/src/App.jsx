@@ -42,7 +42,7 @@ function App() {
         <Route path={"/"} element={<Home user={user} error={error}></Home>}></Route>
         <Route path={"/login"} element={user ? <Navigate to={"/"}></Navigate> : <Login setUser={setUser}></Login>}></Route>
         <Route path={"/register"} element={user ? <Navigate to={"/"}></Navigate> : <Register setUser={setUser}></Register>}></Route>
-        <Route path={"/verify"} element={user ? <Verify user={user} setUser={setUser}></Verify> : <Register setUser={setUser}></Register>}></Route>
+        <Route path={"/verify"} element={(user && !user.is_verified) ? <Verify user={user} setUser={setUser}></Verify> :   <Navigate to={"/"}></Navigate>}></Route>
         <Route path="*" element={<NotFound></NotFound>}></Route>
       </Routes>
     </BrowserRouter>

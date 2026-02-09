@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 function Verify({ user, setUser }) {
     const [form, setForm] = useState({
-        email: user.email,
+        email: user?.email,
         submittedCode: ""
     })
     const [error, setError] = useState("");
@@ -18,6 +18,7 @@ function Verify({ user, setUser }) {
 
         try {
             const res = await axios.post("/api/auth/verify", form);
+            console.log(res.data.user)
             setUser(res.data.user);
             navigate("/");
 
@@ -30,7 +31,7 @@ function Verify({ user, setUser }) {
         <div className="min-h-[80vh] flex items-center justify-center p-4">
             <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md w-full max-w-lg">
                 <h2 className="text-2xl mb-6 font-bold text-center text-gray-800">Verification</h2>
-                <p className="text-center text-gray-800 mb-6">A verification code has been sent to your email ({user.email}). The code is valid for 30 minutes.</p>
+                <p className="text-center text-gray-800 mb-6">A verification code has been sent to your email ({user?.email}). The code is valid for 30 minutes.</p>
                 {error && <p className="text-red-500 mb-4">{error}</p>}
                 <input type="number" placeholder="000000" value={form.submittedCode} onChange={(e) => setForm({ ...form, submittedCode: e.target.value })} className="border p-2 w-full mb-3 text-center" />
 

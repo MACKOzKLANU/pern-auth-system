@@ -16,11 +16,11 @@ const handleSubmit = async (e) => {
 
     try {
         const res = await axios.post("/api/auth/register", form);
-        setUser(res.data.user);
+        setUser(res.data.user)
         navigate("/verify");
 
     } catch (err) {
-        setError("Registration failed");
+        setError("Registration failed: " + err.response.data.message);
     }
 }
 
