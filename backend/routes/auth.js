@@ -15,14 +15,17 @@ const cookieOptions = {
     maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
 }
 
+
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
         expiresIn: '30d'
     });
 }
 
-// Register
 
+// Registers a new user, creates an account, generates a verification OTP,
+// stores it hashed in the database, logs the user in immediately with a JWT cookie,
+// and sends the verification code by email.
 router.post('/register', async (req, res) => {
     const { name, email, password } = req.body;
 
@@ -51,6 +54,7 @@ router.post('/register', async (req, res) => {
 
     const token = generateToken(newUser.rows[0].id);
 
+    // sets a login cookie immediately - user is "logged in before veryfying their email"
     res.cookie('token', token, cookieOptions);
 
     // Sending welcome email
@@ -62,6 +66,9 @@ router.post('/register', async (req, res) => {
     return res.status(201).json({ user: newUser.rows[0] });
 })
 
+
+// Verifies the user's email by checking the submitted OTP,
+// ensures it is valid and not expired, then marks the account as verified.
 router.post('/verify', async (req, res) => {
 
     const { email, submittedCode } = req.body;
@@ -102,6 +109,9 @@ router.post('/verify', async (req, res) => {
 
 })
 
+
+// Resends a new email‑verification OTP to an existing (unverified) user.
+// Generates a fresh OTP, stores it hashed, and emails it again.
 router.post('/resent-otp', async (req, res) => {
     const { email, name } = req.body;
     if (!email) {
@@ -128,13 +138,13 @@ router.post('/resent-otp', async (req, res) => {
 
     sendVerificationOtp(email, name, otpPlain)
 
-
     return res.status(200).json({ message: "Verification code resent" });
 
 })
 
-// Login
 
+// Logs a user in by validating email + password,
+// then issues a long‑lived JWT cookie for authenticated sessions.
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -150,6 +160,11 @@ router.post('/login', async (req, res) => {
     }
 
     const userData = user.rows[0];
+
+    // if you want to restrict login access to verified users only.
+    // if (!userData.is_verified) { 
+    //     return res.status(403).json({ message: "Please verify your email first" }); 
+    // }
 
     const isMatch = await bcrypt.compare(password, userData.password);
 
@@ -171,6 +186,9 @@ router.post('/login', async (req, res) => {
     });
 })
 
+
+// Starts the password‑reset process by generating a reset OTP,
+// storing it hashed with an expiration, and emailing the code to the user.
 router.post('/reset/request', async (req, res) => {
     const { email } = req.body;
 
@@ -200,10 +218,14 @@ router.post('/reset/request', async (req, res) => {
 
     sendResetEmail(email, name, otpPlain)
 
-    return res.status(200).json({ message: "Verification code resent" });
+    return res.status(200).json({ message: "Verification code sent" });
 
 })
 
+
+// Verifies the password‑reset OTP, clears it from the database,
+// and issues a short‑lived JWT (resetToken) that authorizes the user
+// to set a new password in the next step.
 router.post('/reset/verify', async (req, res) => {
     const { email, submittedCode } = req.body;
 
@@ -229,20 +251,28 @@ router.post('/reset/verify', async (req, res) => {
     if (!isMatch) {
         return res.status(400).json({ message: 'Invalid code' });
     }
+
+    await pool.query('UPDATE users SET reset_token=NULL, reset_expires=NULL WHERE email=$1',
+        [email]
+    );
+
     const resetJwt = jwt.sign(
         { email },
         process.env.RESET_SECRET,
         { expiresIn: "10m" }
     );
 
-
     return res.status(200).json({ message: 'Verification successful', resetToken: resetJwt });
 })
 
+
+// Completes the password‑reset process.
+// Validates the short‑lived resetToken JWT, ensures it matches the email,
+// and updates the user's password securely.
 router.post('/reset/confirm', async (req, res) => {
     const { email, password, resetToken } = req.body;
 
-    if (!email || !password) {
+    if (!email || !password || !resetToken) {
         return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
@@ -263,7 +293,7 @@ router.post('/reset/confirm', async (req, res) => {
 
         const hashedPassword = (await bcrypt.hash(password, 10));
 
-        await pool.query('UPDATE users set password=$1, reset_token=NULL, reset_expires=NULL WHERE email = $2',
+        await pool.query('UPDATE users set password=$1 WHERE email = $2',
             [hashedPassword, email]
         );
 
@@ -273,14 +303,16 @@ router.post('/reset/confirm', async (req, res) => {
     }
 })
 
-// Me
+
+// Returns the authenticated user's data. 
+// Uses the protect middleware to ensure the request includes a valid JWT cookie.
 router.get('/me', protect, async (req, res) => {
     res.json(req.user);
     // return info of the logged in user from protect middleware
 })
 
-// Logout
 
+// Logs the user out by clearing the authentication cookie.
 router.post('/logout', (req, res) => {
     res.cookie('token', '', { ...cookieOptions, maxAge: 1 });
     res.json({ message: 'Logged out successfully' });
