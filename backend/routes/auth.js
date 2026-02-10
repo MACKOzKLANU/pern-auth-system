@@ -5,7 +5,7 @@ import pool from '../config/db.js';
 import { protect } from '../middleware/auth.js';
 import transporter from '../config/nodemailer.js';
 import { sendResetEmail, sendVerificationOtp, sendWelcomeEmail } from '../services/mailService.js';
-import { generateOTP, isTokenExpired, tokenExpiry } from '../utils/tokens.js';
+import { generateOTP, getCurrentDate, isTokenExpired, tokenExpiry } from '../utils/tokens.js';
 
 const router = express.Router();
 const cookieOptions = {
@@ -91,9 +91,10 @@ router.post('/verify', async (req, res) => {
     if (!isMatch) {
         return res.status(400).json({ message: 'Invalid code' });
     }
-
-    const updatedUser = await pool.query('UPDATE users SET is_verified=true, verification_code=NULL, verification_expires=NULL WHERE email = $1 RETURNING id, name, email, is_verified',
-        [email]
+    
+    const verified_at = getCurrentDate()
+    const updatedUser = await pool.query('UPDATE users SET is_verified=true, verification_code=NULL, verification_expires=NULL, verified_at=$2 WHERE email = $1 RETURNING id, name, email, is_verified',
+        [email], verified_at
     );
     
     const updatedUserData = updatedUser.rows[0];
@@ -181,11 +182,11 @@ router.post('/reset/request', async (req, res) => {
         [email]
     );
 
-    const name = user.rows[0].name;
-
     if (user.rows.length === 0) {
         return res.status(400).json({ message: 'Invalid credentials' });
     }
+
+    const name = user.rows[0].name;
 
     const otpPlain = generateOTP();
 
@@ -200,6 +201,42 @@ router.post('/reset/request', async (req, res) => {
     sendResetEmail(email, name, otpPlain)
 
     return res.status(200).json({message: "Verification code resent"});
+
+})
+
+router.post('/reset/verify', async (req, res) => {
+    const { email, submittedCode } = req.body;
+
+    if (!email || !submittedCode) {
+        return res.status(400).json({ message: 'Please provide all required fields' });
+    }
+
+    const user = await pool.query('SELECT reset_token, reset_expires FROM users WHERE email = $1',
+        [email]
+    );
+
+    if (user.rows.length === 0) {
+        return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    const userData = user.rows[0];
+
+    if (isTokenExpired(userData.reset_expires)) {
+        return res.status(401).json({ message: 'Token has expired' });
+    }
+
+    const isMatch = await bcrypt.compare(submittedCode, userData.reset_token);
+    if (!isMatch) {
+        return res.status(400).json({ message: 'Invalid code' });
+    }
+
+    const updatedUser = await pool.query('UPDATE users SET reset_token=NULL, reset_expires=NULL WHERE email = $1',
+        [email]
+    );
+    
+    return res.status(200).json({ message: 'Verification successful'});
+
+
 
 })
 

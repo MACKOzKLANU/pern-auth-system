@@ -15,6 +15,11 @@ export function tokenExpiry(hours = 1) {
   return new Date(Date.now() + hours * 60 * 60 * 1000);
 }
 
+// current date and time
+export function getCurrentDate() { 
+  return new Date().toISOString().slice(0, 19).replace('Z', ''); 
+}
+
 export function generateOTP() {
   // Generates a cryptographically strong random 6-digit number
   return crypto.randomInt(100000, 999999).toString();
