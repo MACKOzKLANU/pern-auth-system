@@ -94,7 +94,7 @@ router.post('/verify', async (req, res) => {
     
     const verified_at = getCurrentDate()
     const updatedUser = await pool.query('UPDATE users SET is_verified=true, verification_code=NULL, verification_expires=NULL, verified_at=$2 WHERE email = $1 RETURNING id, name, email, is_verified',
-        [email], verified_at
+        [email, verified_at]
     );
     
     const updatedUserData = updatedUser.rows[0];
@@ -235,9 +235,34 @@ router.post('/reset/verify', async (req, res) => {
     );
     
     return res.status(200).json({ message: 'Verification successful'});
+})
+
+router.post('/reset/confirm', async (req, res) => {
+    const {email, password} = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ message: 'Please provide all required fields' });
+    }
+
+    const user = await pool.query('SELECT * FROM users WHERE email = $1',
+        [email]
+    );
+
+    if (user.rows.length === 0) {
+        return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    const hashedPassword = (await bcrypt.hash(password, 10));
+
+    await pool.query('UPDATE users set password=$1, reset_token=NULL, reset_expires=NULL', 
+        [hashedPassword]
+    );
+
+    return res.status(200).json({ message: 'Password changed successful'});
 
 
 
+    
 })
 
 // Me

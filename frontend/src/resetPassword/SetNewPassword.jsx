@@ -1,19 +1,27 @@
+import axios from "axios";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-function SetNewPassword() {
+function SetNewPassword({ email }) {
     const [form, setForm] = useState({
-        email: "",
+        email: email,
         password: ""
     })
     const [error, setError] = useState("");
 
+    const navigate = useNavigate();
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
+        setError("");
         try {
-            
+            const res = await axios.post("/api/auth/reset/confirm", form);
+            if (res.status === 200) {
+                navigate('/login');
+            }
         } catch (err) {
-            setError("Error");
+            setError("Error: " +  err.response.data.message);
         }
     }
     return (
@@ -30,7 +38,6 @@ function SetNewPassword() {
                     transition-all duration-200"
             >
                 Save new password
-
             </button>
         </form>
     )
