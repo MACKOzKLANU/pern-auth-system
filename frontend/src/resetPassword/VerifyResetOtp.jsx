@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
 
-function VerifyResetOtp({ email, setIsOtpSubmitted }) {
+function VerifyResetOtp({ email, setIsOtpSubmitted, setResetToken }) {
     const [form, setForm] = useState({
         email: email,
         submittedCode: ""
@@ -17,9 +17,10 @@ function VerifyResetOtp({ email, setIsOtpSubmitted }) {
             const res = await axios.post("/api/auth/reset/verify", form);
             if (res.status === 200) {
                 setIsOtpSubmitted(true);
+                setResetToken(res.data.resetToken)
             }
         } catch (err) {
-            setError("Error: " +  err.response.data.message);
+            setError(err.response.data.message);
         }
     };
 

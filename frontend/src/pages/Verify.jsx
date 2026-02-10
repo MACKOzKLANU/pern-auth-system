@@ -12,10 +12,7 @@ function Verify({ user, setUser }) {
     const [cooldown, setCooldown] = useState(0);
 
     const navigate = useNavigate();
-    useEffect(() => {
-
-    }, [])
-
+ 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("")
@@ -27,7 +24,7 @@ function Verify({ user, setUser }) {
             navigate("/");
 
         } catch (err) {
-            setError("Verification failed: " + err.response.data.message);
+            setError(err.response.data.message);
         }
     }
 
@@ -66,7 +63,7 @@ function Verify({ user, setUser }) {
                     hover:bg-blue-700 active:bg-blue-800
                     transition-all duration-200"
                 >
-                    Verify email
+                    Verify emailq
                 </button>
                 <button type="button" disabled={cooldown > 0} onClick={handleResentOTP} className={`w-full mt-3 px-4 py-2 font-medium rounded-lg ${cooldown > 0 ? "text-gray-800 bg-gray-50 hover:bg-gray-100 active:bg-gray-200" : "text-blue-600 bg-blue-50 hover:bg-blue-100 active:bg-blue-200"} transition-colors duration-200`}> {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend verification code"} </button>
             </form>

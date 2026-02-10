@@ -18,9 +18,17 @@ function Home({ user, error }) {
                     <div>
                         <h2 className="text-2xl font-bold mb-6 text-gray-800">Please log in or register.</h2>
                         <div className="flex flex-col gap-y-4">
-                            <Link to={"/login"} className="w-full text-white bg-blue-500 p-3 rounded-md hover:bg-blue-600 font-medium">Login</Link>
+                            <Link to={"/login"} className="w-full px-4 py-2.5 rounded-lg 
+                                bg-blue-600 text-white font-semibold
+                                shadow-sm hover:shadow-lg 
+                                hover:bg-blue-700 active:bg-blue-800
+                                transition-all duration-200">Login</Link>
 
-                            <Link to={"/register"} className="w-full text-gray-800 bg-gray-200 p-3 rounded-md hover:bg-gray-300 font-medium">Register</Link>
+                            <Link to={"/register"} className="w-full px-4 py-2.5 rounded-lg 
+                                bg-gray-600 text-white font-semibold
+                                shadow-sm hover:shadow-lg 
+                                hover:bg-gray-700 active:bg-gray-800
+                                transition-all duration-200">Register</Link>
                         </div>
                     </div>
 

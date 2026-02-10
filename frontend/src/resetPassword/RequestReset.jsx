@@ -14,7 +14,7 @@ function RequestReset({ email, setEmail, setIsEmailSent }) {
                 setIsEmailSent(true);
             }
         } catch (err) {
-            setError("Error: " +  err.response.data.message);
+            setError(err.response.data.message);
         }
     };
 

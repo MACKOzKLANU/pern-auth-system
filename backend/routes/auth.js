@@ -80,7 +80,7 @@ router.post('/verify', async (req, res) => {
     }
 
     else if (userData.is_verified) {
-        return res.status(200).json({ message: 'Account Already verified'});
+        return res.status(200).json({ message: 'Account Already verified' });
     }
 
     else if (isTokenExpired(userData.verification_expires)) {
@@ -91,12 +91,12 @@ router.post('/verify', async (req, res) => {
     if (!isMatch) {
         return res.status(400).json({ message: 'Invalid code' });
     }
-    
+
     const verified_at = getCurrentDate()
     const updatedUser = await pool.query('UPDATE users SET is_verified=true, verification_code=NULL, verification_expires=NULL, verified_at=$2 WHERE email = $1 RETURNING id, name, email, is_verified',
         [email, verified_at]
     );
-    
+
     const updatedUserData = updatedUser.rows[0];
     return res.status(200).json({ message: 'Verification successful', user: updatedUserData });
 
@@ -122,14 +122,14 @@ router.post('/resent-otp', async (req, res) => {
 
     const otpExpires = tokenExpiry(0.5);
 
-    await pool.query('UPDATE public.users SET verification_code=$1, verification_expires=$2', 
-        [otpHash, otpExpires]
+    await pool.query('UPDATE public.users SET verification_code=$1, verification_expires=$2 WHERE email = $3',
+        [otpHash, otpExpires, email]
     );
 
     sendVerificationOtp(email, name, otpPlain)
 
 
-    return res.status(200).json({message: "Verification code resent"});
+    return res.status(200).json({ message: "Verification code resent" });
 
 })
 
@@ -194,13 +194,13 @@ router.post('/reset/request', async (req, res) => {
 
     const otpExpires = tokenExpiry(0.5);
 
-    await pool.query('UPDATE users SET reset_token=$1, reset_expires=$2 WHERE email = $3', 
+    await pool.query('UPDATE users SET reset_token=$1, reset_expires=$2 WHERE email = $3',
         [otpHash, otpExpires, email]
     );
 
     sendResetEmail(email, name, otpPlain)
 
-    return res.status(200).json({message: "Verification code resent"});
+    return res.status(200).json({ message: "Verification code resent" });
 
 })
 
@@ -229,16 +229,18 @@ router.post('/reset/verify', async (req, res) => {
     if (!isMatch) {
         return res.status(400).json({ message: 'Invalid code' });
     }
-
-    const updatedUser = await pool.query('UPDATE users SET reset_token=NULL, reset_expires=NULL WHERE email = $1',
-        [email]
+    const resetJwt = jwt.sign(
+        { email },
+        process.env.RESET_SECRET,
+        { expiresIn: "10m" }
     );
-    
-    return res.status(200).json({ message: 'Verification successful'});
+
+
+    return res.status(200).json({ message: 'Verification successful', resetToken: resetJwt });
 })
 
 router.post('/reset/confirm', async (req, res) => {
-    const {email, password} = req.body;
+    const { email, password, resetToken } = req.body;
 
     if (!email || !password) {
         return res.status(400).json({ message: 'Please provide all required fields' });
@@ -252,17 +254,23 @@ router.post('/reset/confirm', async (req, res) => {
         return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const hashedPassword = (await bcrypt.hash(password, 10));
+    try {
+        const decoded = jwt.verify(resetToken, process.env.RESET_SECRET);
 
-    await pool.query('UPDATE users set password=$1, reset_token=NULL, reset_expires=NULL', 
-        [hashedPassword]
-    );
+        if (decoded.email !== email) {
+            return res.status(400).json({ message: "Invalid token" });
+        }
 
-    return res.status(200).json({ message: 'Password changed successful'});
+        const hashedPassword = (await bcrypt.hash(password, 10));
 
+        await pool.query('UPDATE users set password=$1, reset_token=NULL, reset_expires=NULL WHERE email = $2',
+            [hashedPassword, email]
+        );
 
-
-    
+        return res.status(200).json({ message: "Password changed successfully" });
+    } catch (err) {
+        return res.status(401).json({ message: "Reset token expired or invalid" });
+    }
 })
 
 // Me

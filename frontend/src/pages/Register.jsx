@@ -11,18 +11,19 @@ function Register({ setUser }) {
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
-const handleSubmit = async (e) => {
-    e.preventDefault();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError("")
 
-    try {
-        const res = await axios.post("/api/auth/register", form);
-        setUser(res.data.user)
-        navigate("/verify");
+        try {
+            const res = await axios.post("/api/auth/register", form);
+            setUser(res.data.user)
+            navigate("/verify");
 
-    } catch (err) {
-        setError("Registration failed: " + err.response.data.message);
+        } catch (err) {
+            setError(err.response.data.message);
+        }
     }
-}
 
     return (
         <div className="min-h-[80vh] flex items-center justify-center p-4">
@@ -33,7 +34,13 @@ const handleSubmit = async (e) => {
                 <input type="email" placeholder="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="border p-2 w-full mb-3" />
                 <input type="password" placeholder="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="border p-2 w-full mb-3" />
 
-                <button className="bg-blue-500 text-white p-2 w-full">Register</button>
+                <button className="w-full px-4 py-2.5 rounded-lg 
+                                bg-blue-600 text-white font-semibold
+                                shadow-sm hover:shadow-lg 
+                                hover:bg-blue-700 active:bg-blue-800
+                                transition-all duration-200"
+                >
+                    Register</button>
             </form>
         </div>
     )

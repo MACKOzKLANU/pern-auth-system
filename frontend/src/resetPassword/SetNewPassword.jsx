@@ -2,10 +2,11 @@ import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function SetNewPassword({ email }) {
+function SetNewPassword({ email, resetToken }) {
     const [form, setForm] = useState({
         email: email,
-        password: ""
+        password: "",
+        resetToken: resetToken
     })
     const [error, setError] = useState("");
 
@@ -13,15 +14,15 @@ function SetNewPassword({ email }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         setError("");
+
         try {
             const res = await axios.post("/api/auth/reset/confirm", form);
             if (res.status === 200) {
                 navigate('/login');
             }
         } catch (err) {
-            setError("Error: " +  err.response.data.message);
+            setError(err.response.data.message);
         }
     }
     return (
