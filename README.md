@@ -1,126 +1,156 @@
-# 🚀 PERN Auth System (Authentication Example)
+# 🚀 PERN Auth System — Full Authentication Flow (Email Verification + Password Reset)
 
-A professional, industry-standard authentication system built with the **PERN stack** (PostgreSQL, Express, React, Node.js). This project demonstrates modern development practices for authentication flows using JWTs, secure HTTP-only cookies, hashed passwords with bcrypt, and a responsive UI using Tailwind CSS.
+A complete, production‑ready authentication system built with the **PERN stack** (PostgreSQL, Express, React, Node.js).  
+This project demonstrates modern, secure authentication patterns including:
+
+- **Email verification with OTP**
+- **Password reset with OTP + short‑lived JWT**
+- **Secure HTTP‑only cookies**
+- **Hashed passwords (bcrypt)**
+- **Fully responsive UI (Tailwind CSS)**
+
+Ideal as a learning project, portfolio piece, or foundation for real applications.
+
+---
 
 ## 🛠 Tech Stack
 
-* **Frontend:** React (Vite), Tailwind CSS  
-* **Backend:** Node.js, Express.js  
-* **Database:** PostgreSQL  
-* **Auth / Security:** jsonwebtoken, bcryptjs, cookie-parser  
-* **Tools:** Nodemon, dotenv
+### **Frontend**
+- React (Vite)
+- Tailwind CSS
+- Axios (with credentials)
 
-## ✨ Key Features
+### **Backend**
+- Node.js + Express.js
+- PostgreSQL (pg)
+- bcryptjs
+- jsonwebtoken
+- cookie-parser
+- nodemailer
 
-- **Register:** Create a new user account and receive a JWT set in an HTTP-only cookie.  
-- **Login:** Authenticate with email + password; receive JWT cookie and user info.  
-- **Logout:** Clear authentication cookie.  
-- **Protected routes:** Example `/me` route that returns the current user when authenticated.  
-- **Secure cookies:** Cookie options configured for httpOnly, sameSite, maxAge and secure in production.  
-- **Password hashing:** Passwords are hashed with bcrypt before storage.
+### **Security**
+- HTTP‑only cookies
+- JWT access tokens
+- Short‑lived reset tokens (RESET_SECRET)
+- OTP hashing with bcrypt
+- Token expiration timestamps
+
+---
+
+## ✨ Features
+
+### 🔐 Authentication
+- Register new users
+- Login with email + password
+- Logout (clears auth cookie)
+- Protected `/me` route using JWT cookie
+
+### 📧 Email Verification
+- OTP sent via email
+- OTP hashed in DB
+- Expiration timestamps
+- Resend verification OTP
+- Verified accounts stored as `is_verified`
+
+### 🔄 Password Reset Flow
+- Request reset → OTP emailed
+- Verify OTP → issue short‑lived reset JWT
+- Confirm new password → validate reset JWT
+
+### 🛡 Security Highlights
+- Passwords hashed with bcrypt
+- OTPs hashed with bcrypt
+- JWT stored in **HTTP‑only cookie**
+- Reset JWT stored **only in frontend state/sessionStorage**
+- Cookies configured for production security
+
+---
 
 ## 📂 Project Structure
-
-- `/frontend` — React application (Vite + Tailwind)  
-- `/backend` — Express API, database connection and auth routes  
-- `.env` files live in the backend (see Environment Variables section)
-
----
-
-## 🚀 Getting Started
-
-Follow these steps to run the project locally.
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/MACKOzKLANU/pern-auth-system.git
-cd pern-auth-system
 ```
+backend
+├── config
+│   ├── db.js                 # PostgreSQL connection
+│   └── nodemailer.js         # SMTP transporter configuration
+├── middleware
+│   └── auth.js               # JWT protect middleware (reads cookie, loads user)
+├── routes
+│   └── auth.js               # All authentication, verification and reset routes
+├── services
+│   └── mailService.js        # Email sending logic (OTP, reset, welcome)
+├── utils
+│   └── tokens.js             # OTP generation, expiration helpers
+├── server.js                 # Express server entry point
+├── package.json
+└── .gitignore
 
-### 2. Backend setup
-1. Go to backend:
-   ```bash
-   cd backend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Create a `.env` file in `backend/` with the variables shown below.
-4. Start the backend server (development):
-   ```bash
-   npx nodemon server.js
-   ```
-   Or add scripts to `backend/package.json`:
-   ```json
-   "scripts": {
-     "dev": "nodemon server.js",
-     "start": "node server.js"
-   }
-   ```
+frontend
+├── index.html
+├── package.json
+├── vite.config.js
+├── src
+│   ├── App.jsx
+│   ├── main.jsx
+│   ├── index.css
+│   ├── assets/
+│   ├── components
+│   │   ├── Navbar.jsx
+│   │   └── NotFound.jsx
+│   ├── pages
+│   │   ├── Home.jsx
+│   │   ├── Login.jsx
+│   │   ├── Register.jsx
+│   │   ├── ResetPassword.jsx
+│   │   └── Verify.jsx
+│   └── resetPassword
+│       ├── RequestReset.jsx
+│       ├── VerifyResetOtp.jsx
+│       └── SetNewPassword.jsx
+└── public
+    └── vite.svg
 
-### 3. Frontend setup
-1. Open a new terminal and go to the frontend folder:
-   ```bash
-   cd frontend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the frontend dev server:
-   ```bash
-   npm run dev
-   ```
-   Vite commonly serves at `http://localhost:5173`.
-
+```
 ---
 
-## ⚙️ Environment variables
+## ⚙️ Environment Variables
 
-Create a `.env` file inside the `backend/` folder. Do NOT commit this file to source control.
-
-Below is an example `.env` file you can copy into `backend/.env` and then update with your real values:
+Create `backend/.env`:
 
 ```env
 # Server
 PORT=3000
 
-# Database (Postgres)
+# Database
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=pern_auth
 DB_USER=postgres
-DB_PASSWORD=prog2137
+DB_PASSWORD=your_password
 
 # Auth
-JWT_SECRET=123456
+JWT_SECRET=your_long_random_secret
+RESET_SECRET=your_other_long_random_secret
 
-# Frontend (for CORS / reset links)
+# Frontend URL
 CLIENT_URL=http://localhost:5173
 
-# SMTP (for sending verification and reset emails)
-SMTP_USER=             # e.g. your SMTP username or email (leave blank here)
-SMTP_PASS=             # e.g. your SMTP password (leave blank here)
-SENDER_EMAIL=          # e.g. "No Reply <no-reply@yourdomain.com>"
+# SMTP (email sending)
+SMTP_USER=
+SMTP_PASS=
+SENDER_EMAIL=
 ```
 
-Important:
-- Replace placeholder values (like `prog2137`, `123456`, blank SMTP fields) with secure, real values for development or production.
-- Keep `.env` out of version control. Add `backend/.env` to `.gitignore` if it is not already ignored.
-- For production, use a secure `JWT_SECRET` and secure SMTP credentials. Serve over HTTPS and set `secure: true` for cookies in production.
+**Important:**
+- `JWT_SECRET` and `RESET_SECRET` **must be different**
+- Never commit `.env`
+- Use strong secrets in production
 
 ---
 
-## 🧾 Database Schema (users table)
+## 🧾 Database Schema
 
-Run these SQL commands in your PostgreSQL database:
-
+### Base table
 ```sql
-CREATE DATABASE pern_auth;
-
-\c pern_auth
-
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
@@ -130,8 +160,7 @@ CREATE TABLE users (
 );
 ```
 
-If you add email verification and password reset features, add these columns:
-
+### Additional fields for verification + reset
 ```sql
 ALTER TABLE users
   ADD COLUMN is_verified BOOLEAN DEFAULT FALSE,
@@ -144,113 +173,125 @@ ALTER TABLE users
 
 ---
 
-## 📡 API Endpoints (backend/routes/auth.js)
+## 📡 API Endpoints
 
-- POST `/api/auth/register`
-  - Body: `{ name, email, password }`
-  - Creates a new user, returns user object and sets `token` cookie.
+### 🔹 **POST /api/auth/register**
+Creates user, hashes password, generates OTP, sends email, sets auth cookie.
 
-- POST `/api/auth/login`
-  - Body: `{ email, password }`
-  - Validates credentials, returns user object and sets `token` cookie.
+### 🔹 **POST /api/auth/verify**
+Verifies email using OTP.
 
-- GET `/api/auth/me`
-  - Protected route using `protect` middleware (reads JWT from cookie).
-  - Returns the authenticated user's info.
+### 🔹 **POST /api/auth/resent-otp**
+Resends verification OTP.
 
-- POST `/api/auth/logout`
-  - Clears the `token` cookie and returns a success message.
+### 🔹 **POST /api/auth/login**
+Validates credentials and sets JWT cookie.
 
-(Confirm base path in `server.js` — e.g., `app.use('/api/auth', authRoutes)`)
+### 🔹 **GET /api/auth/me**
+Protected route — returns authenticated user.
+
+### 🔹 **POST /api/auth/logout**
+Clears auth cookie.
 
 ---
 
-## 🔐 CORS, Cookies & Client Requests
+## 🔄 Password Reset Flow
 
-To allow cookies across frontend and backend in development, enable CORS with credentials on the server:
+### 1️⃣ **POST /reset/request**
+- User enters email
+- OTP generated + hashed
+- OTP emailed
+
+### 2️⃣ **POST /reset/verify**
+- User submits OTP
+- OTP validated
+- OTP cleared from DB
+- **Short‑lived reset JWT (10 min)** returned to frontend
+
+### 3️⃣ **POST /reset/confirm**
+- User submits new password + reset JWT
+- JWT validated with `RESET_SECRET`
+- Password updated
+
+---
+
+## 🔐 CORS & Cookies
+
+Backend must allow credentials:
 
 ```js
-import cors from 'cors';
-import cookieParser from 'cookie-parser';
-
 app.use(cors({
   origin: process.env.CLIENT_URL,
   credentials: true
 }));
-app.use(cookieParser());
 ```
 
-When calling the API from the frontend, include credentials:
+Frontend must send credentials:
 
-axios example:
 ```js
-axios.post('/api/auth/login', { email, password }, { withCredentials: true });
-axios.get('/api/auth/me', { withCredentials: true });
+axios.post(url, data, { withCredentials: true });
 ```
-
-fetch example:
-```js
-fetch('/api/auth/login', {
-  method: 'POST',
-  credentials: 'include',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email, password })
-});
-```
-
-Ensure in production you serve over HTTPS and set `cookieOptions.secure = true`.
 
 ---
 
-## 🧩 Example key snippets
+## 🧩 Key Code Snippets
 
-- Generating a JWT:
+### Generate JWT
 ```js
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
-};
+jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 ```
 
-- Sample cookie options used in backend:
+### Generate reset JWT
+```js
+jwt.sign({ email }, process.env.RESET_SECRET, { expiresIn: '10m' });
+```
+
+### Cookie options
 ```js
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'Strict',
-  maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+  maxAge: 30 * 24 * 60 * 60 * 1000
 };
-```
-
-- Hashing a password with bcrypt:
-```js
-const hashedPassword = await bcrypt.hash(password, 10);
 ```
 
 ---
 
-## 🛡 Security & Production Notes
+## 🛡 Production Notes
 
-- Keep `JWT_SECRET` out of source control.
-- Use HTTPS in production and set `secure: true` on cookies.
-- Consider short-lived access tokens + refresh tokens for stricter security.
-- Add input validation and rate limiting to reduce abuse.
-- Store only required fields in the JWT; avoid placing sensitive data in tokens.
-- For reset tokens, consider storing a hashed token in the DB (sha256) instead of plaintext for better security.
+- Always use HTTPS in production
+- Set `secure: true` on cookies
+- Add rate limiting (login, reset, register)
+- Add input validation (email format, password strength)
+- Add logging for failed attempts
+- Never store plaintext OTPs
+- Never store JWTs in localStorage
 
 ---
 
 ## 🧰 Troubleshooting
 
-- "Cannot connect to database": verify `.env` values and that PostgreSQL is running.
-- "Cookie not set / not sent": ensure `axios`/`fetch` uses credentials and backend `cors` allows credentials and correct origin.
-- JWT errors: ensure `JWT_SECRET` is consistent between runs.
-- Email sending fails: check SMTP credentials (`SMTP_USER`, `SMTP_PASS`) and SMTP host/port (if using a provider you may need to allow less secure apps or create an app password).
+### Cookie not sent?
+- Check `withCredentials: true`
+- Check CORS origin
+- Check SameSite settings
+- Must use HTTPS in production
+
+### OTP not working?
+- Check expiration timestamps
+- Ensure OTP is hashed before comparison
+
+### Reset token invalid?
+- Ensure `RESET_SECRET` is correct
+- Ensure token not expired
 
 ---
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome. Open an issue or submit a PR with clear details and tests when applicable.
+PRs and issues are welcome.  
+Feel free to fork and build on top of this project.
 
 ---
 
