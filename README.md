@@ -9,8 +9,6 @@ This project demonstrates modern, secure authentication patterns including:
 - **Hashed passwords (bcrypt)**
 - **Fully responsive UI (Tailwind CSS)**
 
-Ideal as a learning project, portfolio piece, or foundation for real applications.
-
 ---
 
 ## 🛠 Tech Stack
@@ -108,7 +106,6 @@ frontend
 │       └── SetNewPassword.jsx
 └── public
     └── vite.svg
-
 ```
 ---
 
