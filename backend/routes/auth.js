@@ -222,7 +222,6 @@ router.post('/reset/request', async (req, res) => {
 
 })
 
-
 // Verifies the password‑reset OTP, clears it from the database,
 // and issues a short‑lived JWT (resetToken) that authorizes the user
 // to set a new password in the next step.

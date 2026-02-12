@@ -22,7 +22,7 @@ function App() {
       try {
         const res = await axios.get("/api/auth/me");
         setUser(res.data);
-        console.log(res.data);
+        // console.log(res.data);
       } catch(err) {
         setUser(null);
       } finally {
